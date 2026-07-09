@@ -202,61 +202,6 @@ def Goniometer(**kwargs):
         return BaseGon(**kwargs)
 
 
-class XYZStage(BaseInterface, GroupDevice):
-    """
-    Sample XYZ stage.
-
-    Parameters
-    ----------
-    name : str
-        A name to refer to the device
-
-    prefix_x : str
-        The EPICS base PV of the sample-stage's x motor.
-
-    prefix_y : str
-        The EPICS base PV of the sample-stage's y motor.
-
-    prefix_z : str
-        The EPICS base PV of the sample-stage's z motor.
-    """
-
-    x = FCpt(IMS, '{self._prefix_x}', kind='normal')
-    y = FCpt(IMS, '{self._prefix_y}', kind='normal')
-    z = FCpt(IMS, '{self._prefix_z}', kind='normal')
-
-    tab_component_names = True
-
-    def __init__(self, *, name, prefix_x, prefix_y, prefix_z, **kwargs):
-        self._prefix_x = prefix_x
-        self._prefix_y = prefix_y
-        self._prefix_z = prefix_z
-        super().__init__('', name=name, **kwargs)
-
-    def format_status_info(self, status_info):
-        """Override status info handler to render the `XYZStage`."""
-        x = get_status_float(status_info, 'x', 'position')
-        y = get_status_float(status_info, 'y', 'position')
-        z = get_status_float(status_info, 'z', 'position')
-        units = get_status_value(status_info, 'x', 'user_setpoint', 'units')
-
-        return f"""\
-XYZStage
-X, Y, Z: {x}, {y}, {z} [{units}]
-"""
-
-
-class KappaXYZStage(XYZStage):
-    """Helper initializing function for XYZStage object."""
-    def __init__(self, *args, parent, **kwargs):
-        self._prefix_x = parent._prefix_x
-        self._prefix_y = parent._prefix_y
-        self._prefix_z = parent._prefix_z
-        super().__init__(*args, parent=parent, prefix_x=self._prefix_x,
-                         prefix_y=self._prefix_y, prefix_z=self._prefix_z,
-                         **kwargs)
-
-
 class SamPhi(BaseInterface, GroupDevice):
     """
     Sample Phi stage.
@@ -655,27 +600,6 @@ gon_x, gon_y, gon_z: {gon_x}, {gon_y}, {gon_z} [{gon_units}]
 """
 
 
-class MobileKappaStages(BaseInterface, Device):
-    """
-    Class for Kappa endstation.
-    """
-
-    base_x = Cpt(BeckhoffAxis, 'BX', kind='normal')
-    base_y = Cpt(BeckhoffAxis, 'BY', kind='normal')
-    sample_x = Cpt(BeckhoffAxis, 'SX', kind='normal')
-    sample_y = Cpt(BeckhoffAxis, 'SY', kind='normal')
-    sample_z = Cpt(BeckhoffAxis, 'SZ', kind='normal')
-    gon_x = Cpt(BeckhoffAxis, 'X', kind='normal')
-    gon_y = Cpt(BeckhoffAxis, 'Y', kind='normal')
-    gon_z = Cpt(BeckhoffAxis, 'Z', kind='normal')
-    theta = Cpt(BeckhoffAxis, 'GON', kind='normal')
-    eta = Cpt(BeckhoffAxis, 'ETA', kind='normal')
-    kappa = Cpt(BeckhoffAxis, 'KAP', kind='normal')
-    phi = Cpt(BeckhoffAxis, 'PHI', kind='normal')
-
-    tab_component_names = True
-
-
 class HxrDiffractometer(BaseInterface, Device):
     """
     Class for Beckhoff-based diffractometer.
@@ -698,20 +622,21 @@ class HxrDiffractometer(BaseInterface, Device):
     tab_component_names = True
 
 
-class SimSampleStage(KappaXYZStage):
-    x = Cpt(FastMotor, limits=(-100, 100))
-    y = Cpt(FastMotor, limits=(-100, 100))
-    z = Cpt(FastMotor, limits=(-100, 100))
-
-
 class SimKappa(Kappa):
     """Test version of the Kappa object."""
-    sample_stage = Cpt(SimSampleStage, name='')
+
+    sample_x = Cpt(FastMotor, limits=(-100, 100))
+    sample_y = Cpt(FastMotor, limits=(-100, 100))
+    sample_z = Cpt(FastMotor, limits=(-100, 100))
+    base_x = Cpt(FastMotor, limits=(-100, 100))
+    base_y = Cpt(FastMotor, limits=(-100, 100))
+    gon_x = Cpt(FastMotor, limits=(-100, 100))
+    gon_y = Cpt(FastMotor, limits=(-100, 100))
+    gon_z = Cpt(FastMotor, limits=(-100, 100))
+    theta = Cpt(FastMotor, limits=(-180, 180))
     eta = Cpt(FastMotor, limits=(-180, 180))
     kappa = Cpt(FastMotor, limits=(-360, 360))
     phi = Cpt(FastMotor, limits=(-180, 180))
 
     def __init__(self):
-        super().__init__(name='SimKappa', prefix_x='X', prefix_y='Y',
-                         prefix_z='Z', prefix_eta='ETA', prefix_kappa='KAPPA',
-                         prefix_phi='PHI')
+        super().__init__(prefix="KAPPA:TST", name='SimKappa')
