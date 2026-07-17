@@ -435,7 +435,7 @@ class Kappa(BaseInterface, PseudoPositioner, GroupDevice):
 
         # Phase shift for flipped kappa
         if self.kappa.position > 180:
-            k_eta = k_eta - np.pi
+            k_eta = np.pi - k_eta
             k_kap = 2 * np.pi - k_kap
             k_phi = -e_phi * np.pi / 180 - delta
 
